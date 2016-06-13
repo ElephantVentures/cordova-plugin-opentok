@@ -43,6 +43,8 @@
       <hook type="before_plugin_install" src="scripts/downloadiOSSDK.js" />
       <asset src="www/opentok.js" target="opentok.js" />
 
+      <header-file src="src/ios/OpenTokPluginAudioDevice.h" />
+      <source-file src="src/ios/OpenTokPluginAudioDevice.m" />
       <header-file src="src/ios/OpenTokPlugin.h" />
       <source-file src="src/ios/OpenTokPlugin.m" />
 

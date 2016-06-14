@@ -601,7 +601,7 @@ TBSession = (function() {
     element = streamElements[elementId];
     if (element) {
       element.parentNode.removeChild(element);
-      delete streamElements[elementId];
+      delete streamElements[streamId];
       TBUpdateObjects();
     }
     return Cordova.exec(TBSuccess, TBError, OTPlugin, "unsubscribe", [subscriber.streamId]);
@@ -827,9 +827,9 @@ TBSubscriber = (function() {
   };
 
   function TBSubscriber(stream, divName, properties) {
-    var divPosition, element, height, name, obj, position, ratios, subscribeToAudio, subscribeToVideo, width, zIndex, _ref;
+    var divPosition, element, fitMode, height, name, obj, position, ratios, subscribeToAudio, subscribeToVideo, width, zIndex, _ref;
     element = document.getElementById(divName);
-    pdebug("creating subscriber", properties);
+    pdebug("creating subscriber", JSON.stringify(properties));
     this.streamId = stream.streamId;
     if ((properties != null) && properties.width === "100%" && properties.height === "100%") {
       element.style.width = "100%";
@@ -846,6 +846,7 @@ TBSubscriber = (function() {
       name = (_ref = properties.name) != null ? _ref : "";
       subscribeToVideo = "true";
       subscribeToAudio = "true";
+      fitMode = properties.fitMode || "cover";
       if ((properties.subscribeToVideo != null) && properties.subscribeToVideo === false) {
         subscribeToVideo = "false";
       }
@@ -864,7 +865,7 @@ TBSubscriber = (function() {
     position = getPosition(obj.id);
     ratios = TBGetScreenRatios();
     pdebug("final subscriber position", position);
-    Cordova.exec(TBSuccess, TBError, OTPlugin, "subscribe", [stream.streamId, position.top, position.left, width, height, zIndex, subscribeToAudio, subscribeToVideo, ratios.widthRatio, ratios.heightRatio]);
+    Cordova.exec(TBSuccess, TBError, OTPlugin, "subscribe", [stream.streamId, position.top, position.left, width, height, zIndex, subscribeToAudio, subscribeToVideo, ratios.widthRatio, ratios.heightRatio, fitMode]);
   }
 
   TBSubscriber.prototype.removeEventListener = function(event, listener) {

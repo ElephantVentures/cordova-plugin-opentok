@@ -595,7 +595,9 @@ static bool CheckError(OSStatus error, NSString* function) {
     }
     
     if(routeChangeReason == AVAudioSessionRouteChangeReasonOverride ||
-       routeChangeReason == AVAudioSessionRouteChangeReasonCategoryChange)
+       routeChangeReason == AVAudioSessionRouteChangeReasonCategoryChange ||
+       routeChangeReason == AVAudioSessionRouteChangeReasonNewDeviceAvailable ||
+       routeChangeReason == AVAudioSessionRouteChangeReasonOldDeviceUnavailable)
     {
         NSString *oldOutputDeviceName = nil;
         NSString *currentOutputDeviceName = nil;
@@ -953,19 +955,6 @@ NSMutableArray* getOutputChannelMapIndices(NSArray *preferredOutputs)
             NSLog(@"unable to set audio session active: %@", err);
             return NO;
         }
-    }
-    
-    if ([AUDIO_DEVICE_SPEAKER isEqualToString:desiredAudioRoute]) {
-        // replace AudiosessionSetProperty (deprecated from iOS7) with
-        // AVAudioSession overrideOutputAudioPort
-#if !(TARGET_OS_TV)
-        [audioSession overrideOutputAudioPort:AVAudioSessionPortOverrideSpeaker
-                                        error:&err];
-#endif
-    } else
-    {
-        [audioSession overrideOutputAudioPort:AVAudioSessionPortOverrideNone
-                                        error:&err];
     }
     
     return YES;

@@ -91,7 +91,6 @@ static OSStatus playout_cb(void *ref_con,
     BOOL areListenerBlocksSetup;
     BOOL _isResetting;
     int _restartRetryCount;
-    NSArray* preferredOutputs;
     
     /* synchronize all access to the audio subsystem */
     dispatch_queue_t _safetyQueue;
@@ -117,13 +116,6 @@ static OSStatus playout_cb(void *ref_con,
 {
     self = [super init];
     if (self) {
-        preferredOutputs = @[
-            AVAudioSessionPortHeadphones,
-            AVAudioSessionPortBluetoothHFP,
-            AVAudioSessionPortBluetoothA2DP,
-            AVAudioSessionPortUSBAudio,
-            AVAudioSessionPortHDMI,
-            AVAudioSessionPortBuiltInSpeaker];
         _audioFormat = [[OTAudioFormat alloc] init];
         _audioFormat.sampleRate = kSampleRate;
         _audioFormat.numChannels = 1;
@@ -929,32 +921,12 @@ static OSStatus playout_cb(void *ref_con,
     
     return YES;
 }
-NSMutableArray* getOutputChannelMapIndices(NSArray *preferredOutputs)  
-{
-    NSLog(@"getOutputChannelMapIndices start");
-    NSArray *outputPorts = [[[AVAudioSession sharedInstance] currentRoute] outputs];
-    NSMutableArray *channelMapIndices = [NSMutableArray array];
-  
-    for (NSString *preferredPortType in preferredOutputs) {
-        for (AVAudioSessionPortDescription *outputPort in outputPorts) {
-            if ([preferredPortType isEqualToString: [outputPort portType]]) {
-                NSLog(@"Found preferred output %@ with %d channels", [outputPort portName], [[outputPort channels] count]);
-                for (AVAudioSessionChannelDescription *channel in [outputPort channels]) {
-                    NSLog(@"Adding output channel %@ at index %d", [channel channelName], [channel channelNumber]);
-                    [channelMapIndices addObject:[NSNumber numberWithInt: [channel channelNumber]]];
-                }
-                return channelMapIndices;
-            }
-        }  
-    }
-    return channelMapIndices;  
-}
 
 - (BOOL)configureAudioSessionWithDesiredAudioRoute:(NSString*)desiredAudioRoute
 {
     AVAudioSession *audioSession = [AVAudioSession sharedInstance];
     NSError *err;
-
+    
     //ios 8.0 complains about Deactivating an audio session that has running
     // I/O. All I/O should be stopped or paused prior to deactivating the audio
     // session. Looks like we can get away by not using the setActive call
@@ -1052,27 +1024,7 @@ NSMutableArray* getOutputChannelMapIndices(NSArray *preferredOutputs)
         AudioUnitSetProperty(*voice_unit, kAudioUnitProperty_StreamFormat,
                              kAudioUnitScope_Input, kOutputBus,
                              &stream_format, sizeof (stream_format));
-
-        NSArray* channelMapIndices = getOutputChannelMapIndices(preferredOutputs);
-        NSInteger outputNumChannels = [[AVAudioSession sharedInstance] outputNumberOfChannels];
-        NSLog(@"Output channels: %d", outputNumChannels);
-      
-        SInt32 outputChannelMap[outputNumChannels];  
-        memset(outputChannelMap, -1, sizeof(outputChannelMap)); // unmapped  
-      
-        for (id chIndex in channelMapIndices) {  
-            int chIndexVal = [(NSNumber*)chIndex intValue];  
-      
-            if (chIndexVal < outputNumChannels) {  
-                outputChannelMap[chIndexVal] = 0;
-            }  
-        }  
-
-        // set channel map on outputNode AU  
-        UInt32 propSize = (UInt32)sizeof(outputChannelMap);  
-        OSStatus err = AudioUnitSetProperty(*voice_unit, kAudioOutputUnitProperty_ChannelMap, kAudioUnitScope_Global, 0, outputChannelMap, propSize);  
         [self setPlayOutRenderCallback:*voice_unit];
-        NSLog(@"Finished playout audio unit setup");
     }
     
     Float64 f64 = 0;

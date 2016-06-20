@@ -7,6 +7,7 @@
 #import "OpenTokPluginAudioDevice.h"
 #import <AudioToolbox/AudioToolbox.h>
 #import <AVFoundation/AVFoundation.h>
+#import <UIKit/UIKit.h>
 #include <mach/mach.h>
 #include <mach/mach_time.h>
 
@@ -145,7 +146,6 @@ static OSStatus playout_cb(void *ref_con,
 
 - (void)dealloc
 {
-    [self removeObservers];
     [self teardownAudio];
     _audioFormat = nil;
 }
@@ -402,6 +402,7 @@ static bool CheckError(OSStatus error, NSString* function) {
     [self disposePlayoutUnit];
     [self disposeRecordUnit];
     [self freeupAudioBuffers];
+    [self removeObservers];
     
     AVAudioSession *mySession = [AVAudioSession sharedInstance];
     [mySession setCategory:_previousAVAudioSessionCategory error:nil];
@@ -451,7 +452,7 @@ static bool CheckError(OSStatus error, NSString* function) {
 #if !(TARGET_OS_TV)
     audioOptions |= AVAudioSessionCategoryOptionAllowBluetooth ;
     audioOptions |= AVAudioSessionCategoryOptionDefaultToSpeaker;
-    [mySession setCategory:AVAudioSessionCategoryMultiRoute
+    [mySession setCategory:AVAudioSessionCategoryPlayAndRecord
                withOptions:audioOptions
                      error:nil];
 #else
@@ -669,7 +670,10 @@ static bool CheckError(OSStatus error, NSString* function) {
     if(!areListenerBlocksSetup)
     {
         NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
-        
+        [center addObserver:self selector:@selector(handleScreenDidConnectNotification:)
+            name:UIScreenDidConnectNotification object:nil]; 
+        [center addObserver:self selector:@selector(handleScreenDidDisconnectNotification:)
+            name:UIScreenDidDisconnectNotification object:nil];
         [center addObserver:self
                    selector:@selector(onInterruptionEvent:)
                        name:AVAudioSessionInterruptionNotification object:nil];
@@ -685,6 +689,20 @@ static bool CheckError(OSStatus error, NSString* function) {
 
         areListenerBlocksSetup = YES;
     }
+}
+
+- (void)handleScreenDidConnectNotification:(NSNotification*)aNotification
+{
+    [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryMultiRoute error: nil];
+}
+- (void)handleScreenDidDisconnectNotification:(NSNotification*)aNotification
+{
+    [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryPlayAndRecord
+        withOptions: AVAudioSessionCategoryOptionAllowBluetooth |
+            AVAudioSessionCategoryOptionMixWithOthers |
+            AVAudioSessionCategoryOptionDefaultToSpeaker
+        error: nil
+    ];
 }
 
 - (void) removeObservers

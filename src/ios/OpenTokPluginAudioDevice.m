@@ -444,7 +444,7 @@ static bool CheckError(OSStatus error, NSString* function) {
 #if !(TARGET_OS_TV)
     audioOptions |= AVAudioSessionCategoryOptionAllowBluetooth ;
     audioOptions |= AVAudioSessionCategoryOptionDefaultToSpeaker;
-    [mySession setCategory:AVAudioSessionCategoryPlayAndRecord
+    [mySession setCategory:AVAudioSessionCategoryMultiRoute
                withOptions:audioOptions
                      error:nil];
 #else
@@ -578,49 +578,27 @@ static bool CheckError(OSStatus error, NSString* function) {
     NSInteger routeChangeReason =
     [[interruptionDict valueForKey:AVAudioSessionRouteChangeReasonKey]
      integerValue];
-    
+    AVAudioSession* session = [AVAudioSession sharedInstance];
+    BOOL (^isHDMIOutput)(AVAudioSessionPortDescription*, NSUInteger, BOOL*) = ^(AVAudioSessionPortDescription* port, NSUInteger index, BOOL* isDone) {
+        return [AVAudioSessionPortHDMI isEqualToString: [port portType]];
+    };
+
+    NSUInteger audioOptions = AVAudioSessionCategoryOptionMixWithOthers |
+        AVAudioSessionCategoryOptionAllowBluetooth |
+        AVAudioSessionCategoryOptionDefaultToSpeaker;
     // We'll receive a routeChangedEvent when the audio unit starts; don't
     // process events we caused internally.
-    if (AVAudioSessionRouteChangeReasonRouteConfigurationChange ==
-        routeChangeReason)
-    {
-        return;
-    }
-    
-    if(routeChangeReason == AVAudioSessionRouteChangeReasonOverride ||
-       routeChangeReason == AVAudioSessionRouteChangeReasonCategoryChange ||
-       routeChangeReason == AVAudioSessionRouteChangeReasonNewDeviceAvailable ||
-       routeChangeReason == AVAudioSessionRouteChangeReasonOldDeviceUnavailable)
-    {
-        NSString *oldOutputDeviceName = nil;
-        NSString *currentOutputDeviceName = nil;
-        
-        AVAudioSessionRouteDescription* oldRouteDesc =
-        [interruptionDict valueForKey:AVAudioSessionRouteChangePreviousRouteKey];
-        NSArray* outputs =
-        [oldRouteDesc outputs];
-        
-        if(outputs.count > 0)
-        {
-            AVAudioSessionPortDescription *portDesc =
-            (AVAudioSessionPortDescription *)[outputs objectAtIndex:0];
-            oldOutputDeviceName = [portDesc portName];
-        }
-        
-        if([[[AVAudioSession sharedInstance] currentRoute] outputs].count > 0)
-        {
-            currentOutputDeviceName = [[[[[AVAudioSession sharedInstance] currentRoute] outputs]
-                                        objectAtIndex:0] portName];
-        }
-        
-        // we need check this because some times we will receive category change
-        // with the same device.
-        if([oldOutputDeviceName isEqualToString:currentOutputDeviceName] ||
-           currentOutputDeviceName == nil ||  oldOutputDeviceName == nil) {
+    switch ([[interruptionDict valueForKey:AVAudioSessionRouteChangeReasonKey] integerValue]) {
+        case AVAudioSessionRouteChangeReasonRouteConfigurationChange:
             return;
-        }
-        OT_AUDIO_DEBUG(@"routeChanged: old=%@ new=%@",
-                       oldOutputDeviceName, currentOutputDeviceName);
+
+        case AVAudioSessionRouteChangeReasonOverride:
+        case AVAudioSessionRouteChangeReasonCategoryChange:
+        case AVAudioSessionRouteChangeReasonNewDeviceAvailable:
+        case AVAudioSessionRouteChangeReasonOldDeviceUnavailable:
+            if ([[session category] isEqualToString: AVAudioSessionCategoryMultiRoute] && [[[session currentRoute] outputs] indexOfObjectPassingTest: isHDMIOutput] == NSNotFound) {
+                [session setCategory: AVAudioSessionCategoryPlayAndRecord withOptions: audioOptions error: nil];
+            }
     }
     
     // We've made it here, there's been a legit route change.

@@ -27,6 +27,24 @@
     callbackList = [[NSMutableDictionary alloc] init];
     _audioDevice = [[OpenTokPluginAudioDevice alloc] init];
     [OTAudioDeviceManager setAudioDevice: _audioDevice];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                   selector:@selector(onRouteChangeEvent:)
+                       name:AVAudioSessionRouteChangeNotification object:nil];
+}
+
+- (void)onRouteChangeEvent:(NSNotification*) notification {
+    NSDictionary *interruptionDict = notification.userInfo;
+    NSInteger routeChangeReason = [[interruptionDict valueForKey:AVAudioSessionRouteChangeReasonKey]
+     integerValue];
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"Event type %d", routeChangeReason]
+            message:[NSString stringWithFormat:@"AudioSessionCategory: %@\nNew output(s): %@", [[AVAudioSession sharedInstance] category], [[[AVAudioSession sharedInstance] currentRoute] outputs]]
+            preferredStyle:UIAlertControllerStyleAlert];
+ 
+        UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+           handler:^(UIAlertAction * action) {}];
+         
+        [alert addAction:defaultAction];
+        [[self viewController] presentViewController:alert animated:YES completion:nil];
 }
 - (void)addEvent:(CDVInvokedUrlCommand*)command{
     NSString* event = [command.arguments objectAtIndex:0];

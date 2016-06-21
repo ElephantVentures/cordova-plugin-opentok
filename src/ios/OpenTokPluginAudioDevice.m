@@ -444,6 +444,7 @@ static bool CheckError(OSStatus error, NSString* function) {
 #if !(TARGET_OS_TV)
     audioOptions |= AVAudioSessionCategoryOptionAllowBluetooth ;
     audioOptions |= AVAudioSessionCategoryOptionDefaultToSpeaker;
+    // Start out with MultiRoute category in case HDMI is already plugged in
     [mySession setCategory:AVAudioSessionCategoryMultiRoute
                withOptions:audioOptions
                      error:nil];
@@ -596,6 +597,8 @@ static bool CheckError(OSStatus error, NSString* function) {
         case AVAudioSessionRouteChangeReasonCategoryChange:
         case AVAudioSessionRouteChangeReasonNewDeviceAvailable:
         case AVAudioSessionRouteChangeReasonOldDeviceUnavailable:
+            //check if HDMI is plugged in during MultiRoute category
+            //switch to PlayAndRecord category if HDMI is not detected (some other external display is connected)
             if ([[session category] isEqualToString: AVAudioSessionCategoryMultiRoute] && [[[session currentRoute] outputs] indexOfObjectPassingTest: isHDMIOutput] == NSNotFound) {
                 [session setCategory: AVAudioSessionCategoryPlayAndRecord withOptions: audioOptions error: nil];
             }
@@ -640,10 +643,14 @@ static bool CheckError(OSStatus error, NSString* function) {
     if(!areListenerBlocksSetup)
     {
         NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
-        [center addObserver:self selector:@selector(handleScreenDidConnectNotification:)
-            name:UIScreenDidConnectNotification object:nil]; 
-        [center addObserver:self selector:@selector(handleScreenDidDisconnectNotification:)
-            name:UIScreenDidDisconnectNotification object:nil];
+        //handlers for when an external screen is connected/disconnected (notified via UIKit instead of AVFramework)
+        [center addObserver:self
+                   selector:@selector(handleScreenDidConnectNotification:)
+                       name:UIScreenDidConnectNotification object:nil]; 
+        [center addObserver:self
+                   selector:@selector(handleScreenDidDisconnectNotification:)
+                       name:UIScreenDidDisconnectNotification object:nil];
+
         [center addObserver:self
                    selector:@selector(onInterruptionEvent:)
                        name:AVAudioSessionInterruptionNotification object:nil];
@@ -663,10 +670,13 @@ static bool CheckError(OSStatus error, NSString* function) {
 
 - (void)handleScreenDidConnectNotification:(NSNotification*)aNotification
 {
+    //switch to MultiRoute category when an external display is connected
+    //handleRouteChangeEvent: (AVAudioSessionRouteChangeNotification handler) will test if attached screen is HDMI
     [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryMultiRoute error: nil];
 }
 - (void)handleScreenDidDisconnectNotification:(NSNotification*)aNotification
 {
+    //switch back to PlayAndRecord category when external display is disconnected
     [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryPlayAndRecord
         withOptions: AVAudioSessionCategoryOptionAllowBluetooth |
             AVAudioSessionCategoryOptionMixWithOthers |

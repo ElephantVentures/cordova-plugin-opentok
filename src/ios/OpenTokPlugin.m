@@ -5,12 +5,14 @@
 //  Please see the LICENSE included with this distribution for details.
 //
 
-#import "OpentokPlugin.h"
+#import "OpenTokPlugin.h"
+#import "OpenTokPluginAudioDevice.h"
 
 @implementation OpenTokPlugin{
     OTSession* _session;
     OTPublisher* _publisher;
     OTSubscriber* _subscriber;
+    OpenTokPluginAudioDevice* _audioDevice;
     NSMutableDictionary *subscriberDictionary;
     NSMutableDictionary *connectionDictionary;
     NSMutableDictionary *streamDictionary;
@@ -21,8 +23,10 @@
 
 #pragma mark -
 #pragma mark Cordova Methods
--(void) pluginInitialize{
+- (void) pluginInitialize{
     callbackList = [[NSMutableDictionary alloc] init];
+    _audioDevice = [[OpenTokPluginAudioDevice alloc] init];
+    [OTAudioDeviceManager setAudioDevice: _audioDevice];
 }
 - (void)addEvent:(CDVInvokedUrlCommand*)command{
     NSString* event = [command.arguments objectAtIndex:0];

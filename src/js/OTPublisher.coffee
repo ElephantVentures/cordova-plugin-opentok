@@ -25,14 +25,14 @@ class TBPublisher
     cameraName = "front"
     zIndex = TBGetZIndex(document.getElementById(@domId))
     ratios = TBGetScreenRatios()
-    maxAudioBitrate = "40"
+    defaultAudioBitrate = "40"
 
     if @properties?
       width = @properties.width ? position.width
       height = @properties.height ? position.height
       name = @properties.name ? ""
       cameraName = @properties.cameraName ? "front"
-      maxAudioBitrate = @properties.maxAudioBitrate ? maxAudioBitrate
+      maxAudioBitrate = @properties.maxAudioBitrate ? defaultAudioBitrate
       if(@properties.publishAudio? and @properties.publishAudio==false)
         publishAudio="false"
       if(@properties.publishVideo? and @properties.publishVideo==false)

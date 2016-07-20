@@ -281,7 +281,7 @@ TBPublisher = (function() {
     this.streamCreated = __bind(this.streamCreated, this);
     this.eventReceived = __bind(this.eventReceived, this);
     this.setSession = __bind(this.setSession, this);
-    var cameraName, height, name, position, publishAudio, publishVideo, ratios, width, zIndex, _ref, _ref1, _ref2, _ref3, maxAudioBitrate;
+    var cameraName, defaultAudioBitrate, height, maxAudioBitrate, name, position, publishAudio, publishVideo, ratios, width, zIndex, _ref, _ref1, _ref2, _ref3, _ref4;
     this.sanitizeInputs(one, two, three);
     pdebug("creating publisher", {});
     position = getPosition(this.domId);
@@ -291,18 +291,19 @@ TBPublisher = (function() {
     cameraName = "front";
     zIndex = TBGetZIndex(document.getElementById(this.domId));
     ratios = TBGetScreenRatios();
+    defaultAudioBitrate = "40";
     if (this.properties != null) {
       width = (_ref = this.properties.width) != null ? _ref : position.width;
       height = (_ref1 = this.properties.height) != null ? _ref1 : position.height;
       name = (_ref2 = this.properties.name) != null ? _ref2 : "";
       cameraName = (_ref3 = this.properties.cameraName) != null ? _ref3 : "front";
+      maxAudioBitrate = (_ref4 = this.properties.maxAudioBitrate) != null ? _ref4 : defaultAudioBitrate;
       if ((this.properties.publishAudio != null) && this.properties.publishAudio === false) {
         publishAudio = "false";
       }
       if ((this.properties.publishVideo != null) && this.properties.publishVideo === false) {
         publishVideo = "false";
       }
-      maxAudioBitrate = this.properties.maxAudioBitrate != null ? this.properties.maxAudioBitrate : "40";
     }
     if ((width == null) || width === 0 || (height == null) || height === 0) {
       width = DefaultWidth;
@@ -2571,7 +2572,7 @@ OTHelpers.roundFloat = function(value, places) {
     };
 
   };
-
+  
 })(window, window.OTHelpers);
 
 /*jshint browser:true, smarttabs:true*/
@@ -2785,7 +2786,7 @@ OTHelpers.observeStyleChanges = function(element, stylesToObserve, onChange) {
 
             OTHelpers.forEach(stylesToObserve, function(style) {
                 if(isHidden && (style == 'width' || style == 'height')) return;
-
+                
                 var newValue = getStyle(style);
 
                 if (newValue !== oldStyles[style]) {
@@ -2927,7 +2928,7 @@ OTHelpers.observeNodeOrChildNodeRemoval = function(element, onChange) {
     };
 
     document.body.appendChild(domElement);
-
+    
     if(OTHelpers.browserVersion().iframeNeedsLoad) {
       OTHelpers.on(domElement, 'load', wrappedCallback);
     } else {
@@ -2944,11 +2945,11 @@ OTHelpers.observeNodeOrChildNodeRemoval = function(element, onChange) {
     this.element = domElement;
 
   };
-
+  
 })(window, window.OTHelpers);
 
 /*
- * getComputedStyle from
+ * getComputedStyle from 
  * https://github.com/jonathantneal/Polyfills-for-IE8/blob/master/getComputedStyle.js
 
 // tb_require('../helpers.js')
@@ -3218,7 +3219,7 @@ OTHelpers.centerElement = function(element, width, height) {
       }
 
       if (!defaultDisplays[element.ownerDocument]) defaultDisplays[element.ownerDocument] = {};
-
+    
       // We need to know what display value to use for this node. The easiest way
       // is to actually create a node and read it out.
       var testNode = element.ownerDocument.createElement(element.nodeName),

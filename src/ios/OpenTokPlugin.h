@@ -45,3 +45,10 @@
 - (void)TBTesting:(CDVInvokedUrlCommand*)command;
 
 @end
+
+@interface OTPublisherKit(AudioBitrate)
+
+// Audio Bitrate
+- (void)setMaxAudioBitrateKbps:(int)maxAudioKbits;
+
+@end

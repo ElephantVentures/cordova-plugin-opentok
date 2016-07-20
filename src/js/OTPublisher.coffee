@@ -4,7 +4,7 @@
 #     stream - The Stream object corresponding to the stream of the publisher
 #     session (Session) — The Session to which the Publisher is publishing a stream. If the Publisher is not publishing a stream to a Session, this property is set to null.
 #     replaceElementId (String) — The ID of the DOM element that was replaced when the Publisher video stream was inserted.
-#   Methods: 
+#   Methods:
 #     destroy():Publisher - not yet implemented
 #     getImgData() : String - not yet implemented
 #     getStyle() : Object - not yet implemented
@@ -25,12 +25,14 @@ class TBPublisher
     cameraName = "front"
     zIndex = TBGetZIndex(document.getElementById(@domId))
     ratios = TBGetScreenRatios()
+    maxAudioBitrate = "40"
 
     if @properties?
       width = @properties.width ? position.width
       height = @properties.height ? position.height
       name = @properties.name ? ""
       cameraName = @properties.cameraName ? "front"
+      maxAudioBitrate = @properties.maxAudioBitrate ? maxAudioBitrate
       if(@properties.publishAudio? and @properties.publishAudio==false)
         publishAudio="false"
       if(@properties.publishVideo? and @properties.publishVideo==false)
@@ -43,7 +45,7 @@ class TBPublisher
     position = getPosition(@domId)
     TBUpdateObjects()
     OT.getHelper().eventing(@)
-    Cordova.exec(TBSuccess, TBError, OTPlugin, "initPublisher", [name, position.top, position.left, width, height, zIndex, publishAudio, publishVideo, cameraName, ratios.widthRatio, ratios.heightRatio] )
+    Cordova.exec(TBSuccess, TBError, OTPlugin, "initPublisher", [name, position.top, position.left, width, height, zIndex, publishAudio, publishVideo, cameraName, ratios.widthRatio, ratios.heightRatio, maxAudioBitrate] )
     Cordova.exec(@eventReceived, TBSuccess, OTPlugin, "addEvent", ["publisherEvents"] )
   setSession: (session) =>
     @session = session

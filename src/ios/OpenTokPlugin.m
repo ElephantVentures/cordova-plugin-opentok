@@ -8,9 +8,16 @@
 #import "OpenTokPlugin.h"
 #import "OpenTokPluginAudioDevice.h"
 #import <AVFoundation/AVFoundation.h>
+#import <UIKit/UIKit.h>
 
 @interface OpenTokPlugin()
 - (void)onRouteChangeEvent:(NSNotification *)notification;
+- (void)onInterruptionEvent:(NSNotification *)notification;
+- (void)onSecondaryAudioSilenceEvent:(NSNotification *)notification;
+- (void)onMediaServicesResetEvent:(NSNotification *)notification;
+- (void)onMediaServicesLostEvent:(NSNotification *)notification;
+- (void)onScreenDidConnectEvent:(NSNotification *)notification;
+- (void)onScreenDidDisconnectEvent:(NSNotification *)notification;
 @end
 @implementation OpenTokPlugin{
     OTSession* _session;
@@ -36,6 +43,30 @@
     [center addObserver:self
         selector:@selector(onRouteChangeEvent:)
         name:AVAudioSessionRouteChangeNotification object:nil];
+    [center addObserver:self
+        selector:@selector(onInterruptionEvent:)
+        name:AVAudioSessionInterruptionNotification object:nil];
+    [center addObserver:self
+        selector:@selector(onSecondaryAudioSilenceEvent:)
+        name:AVAudioSessionSilenceSecondaryAudioHintNotification object:nil];
+    [center addObserver:self
+        selector:@selector(onMediaServicesResetEvent:)
+        name:AVAudioSessionMediaServicesWereResetNotification object:nil];
+    [center addObserver:self
+        selector:@selector(onMediaServicesLostEvent:)
+        name:AVAudioSessionMediaServicesWereLostNotification object:nil];
+    [center addObserver:self
+        selector:@selector(onMediaServicesLostEvent:)
+        name:AVAudioSessionMediaServicesWereLostNotification object:nil];
+    [center addObserver:self
+        selector:@selector(onMediaServicesLostEvent:)
+        name:AVAudioSessionMediaServicesWereLostNotification object:nil];
+    [center addObserver:self
+        selector:@selector(onScreenDidConnectEvent:)
+        name:UIScreenDidConnectNotification object:nil]; 
+    [center addObserver:self
+        selector:@selector(onScreenDidDisconnectEvent:)
+        name:UIScreenDidDisconnectNotification object:nil];
 }
 - (void)addEvent:(CDVInvokedUrlCommand*)command{
     NSString* event = [command.arguments objectAtIndex:0];
@@ -46,6 +77,44 @@
     _debugCallbackId = command.callbackId;
 }
 
+- (void) onScreenDidConnectEvent:(NSNotification *)notification {
+    AVAudioSession *session = [AVAudioSession sharedInstance];
+    NSArray *screens = [UIScreen screens];
+    NSMutableArray *screenNames = [NSMutableArray arrayWithCapacity: [screens count]];
+    [screens enumerateObjectsUsingBlock:^(id screen, NSUInteger idx, BOOL *stop) {
+        [screenNames addObject: [screen description]];
+    }];
+    NSDictionary *message = @{
+        @"screens": screenNames
+    };
+    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:message];
+    [result setKeepCallbackAsBool: YES];
+    if (_debugCallbackId) {
+        [self.commandDelegate sendPluginResult:result callbackId:_debugCallbackId];
+    }
+    if (_session) {
+        [_session signalWithType: @"screenConnect" string: [message description] connection: nil retryAfterReconnect: YES error: nil];
+    }
+}
+- (void) onScreenDidDisconnectEvent:(NSNotification *)notification {
+    AVAudioSession *session = [AVAudioSession sharedInstance];
+    NSArray *screens = [UIScreen screens];
+    NSMutableArray *screenNames = [NSMutableArray arrayWithCapacity: [screens count]];
+    [screens enumerateObjectsUsingBlock:^(id screen, NSUInteger idx, BOOL *stop) {
+        [screenNames addObject: [screen description]];
+    }];
+    NSDictionary *message = @{
+        @"screens": screenNames
+    };
+    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:message];
+    [result setKeepCallbackAsBool: YES];
+    if (_debugCallbackId) {
+        [self.commandDelegate sendPluginResult:result callbackId:_debugCallbackId];
+    }
+    if (_session) {
+        [_session signalWithType: @"screenDisconnect" string: [message description] connection: nil retryAfterReconnect: YES error: nil];
+    }
+}
 - (void) onRouteChangeEvent:(NSNotification *)notification {
     AVAudioSession *session = [AVAudioSession sharedInstance];
     NSArray *outputs = [[session currentRoute] outputs];
@@ -60,9 +129,93 @@
     };
     CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:message];
     [result setKeepCallbackAsBool: YES];
-    [self.commandDelegate sendPluginResult:result callbackId:_debugCallbackId];
+    if (_debugCallbackId) {
+        [self.commandDelegate sendPluginResult:result callbackId:_debugCallbackId];
+    }
     if (_session) {
         [_session signalWithType: @"routeChange" string: [message description] connection: nil retryAfterReconnect: YES error: nil];
+    }
+}
+- (void) onInterruptionEvent:(NSNotification *)notification {
+    AVAudioSession *session = [AVAudioSession sharedInstance];
+    NSArray *outputs = [[session currentRoute] outputs];
+    NSMutableArray *outputNames = [NSMutableArray arrayWithCapacity: [outputs count]];
+    [outputs enumerateObjectsUsingBlock:^(id output, NSUInteger idx, BOOL *stop) {
+        [outputNames addObject: [output portName]];
+    }];
+    NSDictionary *message = @{
+        @"interruptionType": [[notification userInfo] valueForKey: AVAudioSessionInterruptionTypeKey],
+        @"currentCategory": [session category],
+        @"outputs": outputNames
+    };
+    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:message];
+    [result setKeepCallbackAsBool: YES];
+    if (_debugCallbackId) {
+        [self.commandDelegate sendPluginResult:result callbackId:_debugCallbackId];
+    }
+    if (_session) {
+        [_session signalWithType: @"interruption" string: [message description] connection: nil retryAfterReconnect: YES error: nil];
+    }
+}
+- (void) onSecondaryAudioSilenceEvent:(NSNotification *)notification {
+    AVAudioSession *session = [AVAudioSession sharedInstance];
+    NSArray *outputs = [[session currentRoute] outputs];
+    NSMutableArray *outputNames = [NSMutableArray arrayWithCapacity: [outputs count]];
+    [outputs enumerateObjectsUsingBlock:^(id output, NSUInteger idx, BOOL *stop) {
+        [outputNames addObject: [output portName]];
+    }];
+    NSDictionary *message = @{
+        @"silenceType": [[notification userInfo] valueForKey: AVAudioSessionSilenceSecondaryAudioHintTypeKey],
+        @"currentCategory": [session category],
+        @"outputs": outputNames
+    };
+    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:message];
+    [result setKeepCallbackAsBool: YES];
+    if (_debugCallbackId) {
+        [self.commandDelegate sendPluginResult:result callbackId:_debugCallbackId];
+    }
+    if (_session) {
+        [_session signalWithType: @"secondaryAudioSilence" string: [message description] connection: nil retryAfterReconnect: YES error: nil];
+    }
+}
+- (void) onMediaServicesResetEvent:(NSNotification *)notification {
+    AVAudioSession *session = [AVAudioSession sharedInstance];
+    NSArray *outputs = [[session currentRoute] outputs];
+    NSMutableArray *outputNames = [NSMutableArray arrayWithCapacity: [outputs count]];
+    [outputs enumerateObjectsUsingBlock:^(id output, NSUInteger idx, BOOL *stop) {
+        [outputNames addObject: [output portName]];
+    }];
+    NSDictionary *message = @{
+        @"currentCategory": [session category],
+        @"outputs": outputNames
+    };
+    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:message];
+    [result setKeepCallbackAsBool: YES];
+    if (_debugCallbackId) {
+        [self.commandDelegate sendPluginResult:result callbackId:_debugCallbackId];
+    }
+    if (_session) {
+        [_session signalWithType: @"mediaServicesReset" string: [message description] connection: nil retryAfterReconnect: YES error: nil];
+    }
+}
+- (void) onMediaServicesLostEvent:(NSNotification *)notification {
+    AVAudioSession *session = [AVAudioSession sharedInstance];
+    NSArray *outputs = [[session currentRoute] outputs];
+    NSMutableArray *outputNames = [NSMutableArray arrayWithCapacity: [outputs count]];
+    [outputs enumerateObjectsUsingBlock:^(id output, NSUInteger idx, BOOL *stop) {
+        [outputNames addObject: [output portName]];
+    }];
+    NSDictionary *message = @{
+        @"currentCategory": [session category],
+        @"outputs": outputNames
+    };
+    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:message];
+    [result setKeepCallbackAsBool: YES];
+    if (_debugCallbackId) {
+        [self.commandDelegate sendPluginResult:result callbackId:_debugCallbackId];
+    }
+    if (_session) {
+        [_session signalWithType: @"mediaServicesLost" string: [message description] connection: nil retryAfterReconnect: YES error: nil];
     }
 }
 

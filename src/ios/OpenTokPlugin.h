@@ -41,6 +41,7 @@
 // HouseKeeping
 
 
+- (void)debugHandler:(CDVInvokedUrlCommand*)command;
 
 - (void)TBTesting:(CDVInvokedUrlCommand*)command;
 

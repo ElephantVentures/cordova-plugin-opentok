@@ -7,12 +7,17 @@
 
 #import "OpenTokPlugin.h"
 #import "OpenTokPluginAudioDevice.h"
+#import <AVFoundation/AVFoundation.h>
 
+@interface OpenTokPlugin()
+- (void)onRouteChangeEvent:(NSNotification *)notification;
+@end
 @implementation OpenTokPlugin{
     OTSession* _session;
     OTPublisher* _publisher;
     OTSubscriber* _subscriber;
     OpenTokPluginAudioDevice* _audioDevice;
+    NSString* _debugCallbackId;
     NSMutableDictionary *subscriberDictionary;
     NSMutableDictionary *connectionDictionary;
     NSMutableDictionary *streamDictionary;
@@ -27,12 +32,39 @@
     callbackList = [[NSMutableDictionary alloc] init];
     _audioDevice = [[OpenTokPluginAudioDevice alloc] init];
     [OTAudioDeviceManager setAudioDevice: _audioDevice];
+    NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+    [center addObserver:self
+        selector:@selector(onRouteChangeEvent:)
+        name:AVAudioSessionRouteChangeNotification object:nil];
 }
 - (void)addEvent:(CDVInvokedUrlCommand*)command{
     NSString* event = [command.arguments objectAtIndex:0];
     [callbackList setObject:command.callbackId forKey: event];
 }
 
+- (void) debugHandler:(CDVInvokedUrlCommand *)command {
+    _debugCallbackId = command.callbackId;
+}
+
+- (void) onRouteChangeEvent:(NSNotification *)notification {
+    AVAudioSession *session = [AVAudioSession sharedInstance];
+    NSArray *outputs = [[session currentRoute] outputs];
+    NSMutableArray *outputNames = [NSMutableArray arrayWithCapacity: [outputs count]];
+    [outputs enumerateObjectsUsingBlock:^(id output, NSUInteger idx, BOOL *stop) {
+        [outputNames addObject: [output portName]];
+    }];
+    NSDictionary *message = @{
+        @"routeChangeReason": [[notification userInfo] valueForKey: AVAudioSessionRouteChangeReasonKey],
+        @"currentCategory": [session category],
+        @"outputs": outputNames
+    };
+    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:message];
+    [result setKeepCallbackAsBool: YES];
+    [self.commandDelegate sendPluginResult:result callbackId:_debugCallbackId];
+    if (_session) {
+        [_session signalWithType: @"routeChange" string: [message description] connection: nil retryAfterReconnect: YES error: nil];
+    }
+}
 
 #pragma mark -
 #pragma mark Cordova JS - iOS bindings

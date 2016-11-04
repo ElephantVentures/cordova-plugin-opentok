@@ -597,7 +597,9 @@ static bool CheckError(OSStatus error, NSString* function) {
             @"currentCategory": [session category],
             @"outputs": outputNames
         };
-        [_delegate onRouteChange: message];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.delegate onRouteChange: message];
+        });
     }
     // Debugging code end
 

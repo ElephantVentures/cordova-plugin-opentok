@@ -6,7 +6,6 @@
 //
 
 #import "OpenTokPlugin.h"
-#import "OpenTokPluginAudioDevice.h"
 
 @implementation OpenTokPlugin{
     OTSession* _session;
@@ -26,11 +25,21 @@
 - (void) pluginInitialize{
     callbackList = [[NSMutableDictionary alloc] init];
     _audioDevice = [[OpenTokPluginAudioDevice alloc] init];
+    [_audioDevice setDelegate: self];
     [OTAudioDeviceManager setAudioDevice: _audioDevice];
 }
 - (void)addEvent:(CDVInvokedUrlCommand*)command{
     NSString* event = [command.arguments objectAtIndex:0];
     [callbackList setObject:command.callbackId forKey: event];
+}
+
+
+#pragma mark - OpenTokPluginAudioDeviceDelegate
+
+- (void)onRouteChange:(NSDictionary*)eventData {
+    if (_session) {
+        [_session signalWithType: @"onRouteChange" string: [eventData description] connection: nil retryAfterReconnect: YES error: nil];
+    }
 }
 
 

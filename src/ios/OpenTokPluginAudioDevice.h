@@ -68,5 +68,7 @@
 @protocol OpenTokPluginAudioDeviceDelegate <NSObject>
 
 - (void)onRouteChange:(NSDictionary*)eventData;
+- (void)onScreenDidConnect:(NSDictionary*)eventData;
+- (void)onScreenDidDisconnect:(NSDictionary*)eventData;
 
 @end

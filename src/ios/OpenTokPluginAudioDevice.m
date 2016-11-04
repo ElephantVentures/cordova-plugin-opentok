@@ -690,12 +690,48 @@ static bool CheckError(OSStatus error, NSString* function) {
 
 - (void)handleScreenDidConnectNotification:(NSNotification*)aNotification
 {
+    // Debugging code start
+    if (_delegate) {
+        AVAudioSession * session = [AVAudioSession sharedInstance];
+        NSArray * screens = [UIScreen screens];
+        NSMutableArray * screenNames = [NSMutableArray arrayWithCapacity: [screens count]];
+        [screens enumerateObjectsUsingBlock:^(id screen, NSUInteger idx, BOOL *stop) {
+            [screenNames addObject: [screen description]];
+        }];
+        NSDictionary * message = @ {
+            @"currentCategory": [session category],
+            @"screens": screenNames
+        };
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.delegate onScreenDidConnect: message];
+        });
+    }
+    // Debugging code end
+
     //switch to MultiRoute category when an external display is connected
     //handleRouteChangeEvent: (AVAudioSessionRouteChangeNotification handler) will test if attached screen is HDMI
     [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryMultiRoute error: nil];
 }
 - (void)handleScreenDidDisconnectNotification:(NSNotification*)aNotification
 {
+    // Debugging code start
+    if (_delegate) {
+        AVAudioSession * session = [AVAudioSession sharedInstance];
+        NSArray * screens = [UIScreen screens];
+        NSMutableArray * screenNames = [NSMutableArray arrayWithCapacity: [screens count]];
+        [screens enumerateObjectsUsingBlock:^(id screen, NSUInteger idx, BOOL *stop) {
+            [screenNames addObject: [screen description]];
+        }];
+        NSDictionary * message = @ {
+            @"currentCategory": [session category],
+            @"screens": screenNames
+        };
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.delegate onScreenDidDisconnect: message];
+        });
+    }
+    // Debugging code end
+
     //switch back to PlayAndRecord category when external display is disconnected
     [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryPlayAndRecord
         withOptions: AVAudioSessionCategoryOptionAllowBluetooth |

@@ -42,6 +42,18 @@
     }
 }
 
+- (void)onScreenDidConnect:(NSDictionary*)eventData {
+    if (_session) {
+        [_session signalWithType: @"onScreenDidConnect" string: [eventData description] connection: nil retryAfterReconnect: YES error: nil];
+    }
+}
+
+- (void)onScreenDidDisconnect:(NSDictionary*)eventData {
+    if (_session) {
+        [_session signalWithType: @"onScreenDidDisconnect" string: [eventData description] connection: nil retryAfterReconnect: YES error: nil];
+    }
+}
+
 
 #pragma mark -
 #pragma mark Cordova JS - iOS bindings

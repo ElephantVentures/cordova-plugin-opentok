@@ -9,8 +9,9 @@
 #import <Cordova/CDVPlugin.h>
 #import <UIKit/UIKit.h>
 #import <Opentok/Opentok.h>
+#import "OpenTokPluginAudioDevice.h"
 
-@interface OpenTokPlugin : CDVPlugin <OTSessionDelegate, OTPublisherDelegate, OTSubscriberKitDelegate>
+@interface OpenTokPlugin : CDVPlugin <OTSessionDelegate, OTPublisherDelegate, OTSubscriberKitDelegate, OpenTokPluginAudioDeviceDelegate>
 
 @property(nonatomic, copy) NSString* exceptionId;
 

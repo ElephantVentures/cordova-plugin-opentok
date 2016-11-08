@@ -6,7 +6,6 @@
 //
 
 #import "OpenTokPlugin.h"
-#import "OpenTokPluginAudioDevice.h"
 
 @implementation OpenTokPlugin{
     OTSession* _session;
@@ -26,11 +25,35 @@
 - (void) pluginInitialize{
     callbackList = [[NSMutableDictionary alloc] init];
     _audioDevice = [[OpenTokPluginAudioDevice alloc] init];
+    // Uncomment code below to enable logging for
+    // AVAudioSession via Opentok signaling
+//    [_audioDevice setDelegate: self];
     [OTAudioDeviceManager setAudioDevice: _audioDevice];
 }
 - (void)addEvent:(CDVInvokedUrlCommand*)command{
     NSString* event = [command.arguments objectAtIndex:0];
     [callbackList setObject:command.callbackId forKey: event];
+}
+
+
+#pragma mark - OpenTokPluginAudioDeviceDelegate
+
+- (void)onRouteChange:(NSDictionary*)eventData {
+    if (_session) {
+        [_session signalWithType: @"onRouteChange" string: [eventData description] connection: nil retryAfterReconnect: YES error: nil];
+    }
+}
+
+- (void)onScreenDidConnect:(NSDictionary*)eventData {
+    if (_session) {
+        [_session signalWithType: @"onScreenDidConnect" string: [eventData description] connection: nil retryAfterReconnect: YES error: nil];
+    }
+}
+
+- (void)onScreenDidDisconnect:(NSDictionary*)eventData {
+    if (_session) {
+        [_session signalWithType: @"onScreenDidDisconnect" string: [eventData description] connection: nil retryAfterReconnect: YES error: nil];
+    }
 }
 
 

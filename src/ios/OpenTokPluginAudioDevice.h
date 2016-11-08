@@ -15,6 +15,8 @@
 #define AUDIO_DEVICE_BLUETOOTH   @"AudioSessionManagerDevice_Bluetooth"
 #define AUDIO_DEVICE_SPEAKER     @"AudioSessionManagerDevice_Speaker"
 
+@protocol OpenTokPluginAudioDeviceDelegate;
+
 @interface OpenTokPluginAudioDevice : NSObject <OTAudioDevice>
 {
     AudioStreamBasicDescription	stream_format;
@@ -29,6 +31,8 @@
  */
 @property (nonatomic, readonly) BOOL bluetoothDeviceAvailable;
 
+
+@property (strong, nonatomic) id<OpenTokPluginAudioDeviceDelegate> delegate;
 
 - (BOOL)setAudioBus:(id<OTAudioBus>)audioBus;
 
@@ -58,4 +62,13 @@
 - (BOOL)detectCurrentRoute;
 
 - (BOOL)setPlayOutRenderCallback:(AudioUnit)unit;
+@end
+
+
+@protocol OpenTokPluginAudioDeviceDelegate <NSObject>
+
+- (void)onRouteChange:(NSDictionary*)eventData;
+- (void)onScreenDidConnect:(NSDictionary*)eventData;
+- (void)onScreenDidDisconnect:(NSDictionary*)eventData;
+
 @end

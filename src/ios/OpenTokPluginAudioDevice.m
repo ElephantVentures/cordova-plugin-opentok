@@ -695,6 +695,7 @@ static bool CheckError(OSStatus error, NSString* function) {
 
 - (void)handleScreenDidConnectNotification:(NSNotification*)aNotification
 {
+
     // Debugging code start
     if (_delegate) {
         AVAudioSession * session = [AVAudioSession sharedInstance];
@@ -703,7 +704,7 @@ static bool CheckError(OSStatus error, NSString* function) {
         [screens enumerateObjectsUsingBlock:^(id screen, NSUInteger idx, BOOL *stop) {
             [screenNames addObject: [screen description]];
         }];
-        NSDictionary * message = @ {
+        NSMutableDictionary * message = @ {
             @"currentCategory": [session category],
             @"screens": screenNames
         };
@@ -713,17 +714,42 @@ static bool CheckError(OSStatus error, NSString* function) {
     }
     // Debugging code end
 
+
     //switch to MultiRoute category when an external display is connected
     //handleRouteChangeEvent: (AVAudioSessionRouteChangeNotification handler) will test if attached screen is HDMI
     dispatch_async(_safetyQueue, ^{
+        NSError * err;
         [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryMultiRoute
             withOptions: AVAudioSessionCategoryOptionAllowBluetooth |
                 AVAudioSessionCategoryOptionMixWithOthers |
                 AVAudioSessionCategoryOptionDefaultToSpeaker
-            error: nil
+            error: &err
         ];
 
         [self resetAudio];
+
+        // Debugging code start
+        if (_delegate) {
+            AVAudioSession * session = [AVAudioSession sharedInstance];
+            NSArray * screens = [UIScreen screens];
+            NSMutableArray * screenNames = [NSMutableArray arrayWithCapacity: [screens count]];
+            [screens enumerateObjectsUsingBlock:^(id screen, NSUInteger idx, BOOL *stop) {
+                [screenNames addObject: [screen description]];
+            }];
+            NSMutableDictionary * message = @ {
+                @"currentCategory": [session category],
+                @"screens": screenNames
+            };
+
+            if (err) {
+                [message setObject:[err description] forKey:@"error"];
+            }
+
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self.delegate onScreenDidConnect: message];
+            });
+        }
+        // Debugging code end
     });
 }
 
@@ -737,7 +763,7 @@ static bool CheckError(OSStatus error, NSString* function) {
         [screens enumerateObjectsUsingBlock:^(id screen, NSUInteger idx, BOOL *stop) {
             [screenNames addObject: [screen description]];
         }];
-        NSDictionary * message = @ {
+        NSMutableDictionary * message = @ {
             @"currentCategory": [session category],
             @"screens": screenNames
         };
@@ -749,14 +775,38 @@ static bool CheckError(OSStatus error, NSString* function) {
 
     //switch back to PlayAndRecord category when external display is disconnected
     dispatch_async(_safetyQueue, ^{
+        NSError * err;
         [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryPlayAndRecord
             withOptions: AVAudioSessionCategoryOptionAllowBluetooth |
                 AVAudioSessionCategoryOptionMixWithOthers |
                 AVAudioSessionCategoryOptionDefaultToSpeaker
-            error: nil
+            error: &err
         ];
 
         [self resetAudio];
+
+        // Debugging code start
+        if (_delegate) {
+            AVAudioSession * session = [AVAudioSession sharedInstance];
+            NSArray * screens = [UIScreen screens];
+            NSMutableArray * screenNames = [NSMutableArray arrayWithCapacity: [screens count]];
+            [screens enumerateObjectsUsingBlock:^(id screen, NSUInteger idx, BOOL *stop) {
+                [screenNames addObject: [screen description]];
+            }];
+            NSMutableDictionary * message = @ {
+                @"currentCategory": [session category],
+                @"screens": screenNames
+            };
+
+            if (err) {
+                [message setObject:[err description] forKey:@"error"];
+            }
+
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self.delegate onScreenDidDisconnect: message];
+            });
+        }
+        // Debugging code end
     });
 }
 

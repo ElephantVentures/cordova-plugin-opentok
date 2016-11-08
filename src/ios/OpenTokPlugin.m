@@ -25,7 +25,9 @@
 - (void) pluginInitialize{
     callbackList = [[NSMutableDictionary alloc] init];
     _audioDevice = [[OpenTokPluginAudioDevice alloc] init];
-    [_audioDevice setDelegate: self];
+    // Uncomment code below to enable logging for
+    // AVAudioSession via Opentok signaling
+//    [_audioDevice setDelegate: self];
     [OTAudioDeviceManager setAudioDevice: _audioDevice];
 }
 - (void)addEvent:(CDVInvokedUrlCommand*)command{

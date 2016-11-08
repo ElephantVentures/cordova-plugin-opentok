@@ -710,13 +710,16 @@ static bool CheckError(OSStatus error, NSString* function) {
 
     //switch to MultiRoute category when an external display is connected
     //handleRouteChangeEvent: (AVAudioSessionRouteChangeNotification handler) will test if attached screen is HDMI
-    [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryMultiRoute
-        withOptions: AVAudioSessionCategoryOptionAllowBluetooth |
-            AVAudioSessionCategoryOptionMixWithOthers |
-            AVAudioSessionCategoryOptionDefaultToSpeaker
-        error: nil
-    ];
+    dispatch_async(_safetyQueue, ^{
+        [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryMultiRoute
+            withOptions: AVAudioSessionCategoryOptionAllowBluetooth |
+                AVAudioSessionCategoryOptionMixWithOthers |
+                AVAudioSessionCategoryOptionDefaultToSpeaker
+            error: nil
+        ];
+    });
 }
+
 - (void)handleScreenDidDisconnectNotification:(NSNotification*)aNotification
 {
     // Debugging code start
@@ -738,12 +741,14 @@ static bool CheckError(OSStatus error, NSString* function) {
     // Debugging code end
 
     //switch back to PlayAndRecord category when external display is disconnected
-    [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryPlayAndRecord
-        withOptions: AVAudioSessionCategoryOptionAllowBluetooth |
-            AVAudioSessionCategoryOptionMixWithOthers |
-            AVAudioSessionCategoryOptionDefaultToSpeaker
-        error: nil
-    ];
+    dispatch_async(_safetyQueue, ^{
+        [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryPlayAndRecord
+            withOptions: AVAudioSessionCategoryOptionAllowBluetooth |
+                AVAudioSessionCategoryOptionMixWithOthers |
+                AVAudioSessionCategoryOptionDefaultToSpeaker
+            error: nil
+        ];
+    });
 }
 
 - (void) removeObservers

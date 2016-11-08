@@ -710,7 +710,12 @@ static bool CheckError(OSStatus error, NSString* function) {
 
     //switch to MultiRoute category when an external display is connected
     //handleRouteChangeEvent: (AVAudioSessionRouteChangeNotification handler) will test if attached screen is HDMI
-    [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryMultiRoute error: nil];
+    [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryMultiRoute
+        withOptions: AVAudioSessionCategoryOptionAllowBluetooth |
+            AVAudioSessionCategoryOptionMixWithOthers |
+            AVAudioSessionCategoryOptionDefaultToSpeaker
+        error: nil
+    ];
 }
 - (void)handleScreenDidDisconnectNotification:(NSNotification*)aNotification
 {

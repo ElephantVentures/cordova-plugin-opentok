@@ -573,6 +573,27 @@ static bool CheckError(OSStatus error, NSString* function) {
     });
 }
 
+- (void) resetAudio
+{
+    _isResetting = YES;
+
+    if (recording)
+    {
+        [self stopCapture];
+        [self disposeRecordUnit];
+        [self startCapture];
+    }
+
+    if (playing)
+    {
+        [self stopRendering];
+        [self disposePlayoutUnit];
+        [self startRendering];
+    }
+
+    _isResetting = NO;
+}
+
 - (void) handleRouteChangeEvent:(NSNotification *) notification
 {
     NSDictionary *interruptionDict = notification.userInfo;
@@ -626,23 +647,7 @@ static bool CheckError(OSStatus error, NSString* function) {
 
     // We've made it here, there's been a legit route change.
     // Restart the audio units with correct sample rate
-    _isResetting = YES;
-
-    if (recording)
-    {
-        [self stopCapture];
-        [self disposeRecordUnit];
-        [self startCapture];
-    }
-
-    if (playing)
-    {
-        [self stopRendering];
-        [self disposePlayoutUnit];
-        [self startRendering];
-    }
-
-    _isResetting = NO;
+    [self resetAudio];
 }
 
 /* When ringer is off, we dont get interruption ended callback
@@ -717,6 +722,8 @@ static bool CheckError(OSStatus error, NSString* function) {
                 AVAudioSessionCategoryOptionDefaultToSpeaker
             error: nil
         ];
+
+        [self resetAudio];
     });
 }
 
@@ -748,6 +755,8 @@ static bool CheckError(OSStatus error, NSString* function) {
                 AVAudioSessionCategoryOptionDefaultToSpeaker
             error: nil
         ];
+
+        [self resetAudio];
     });
 }
 

@@ -718,7 +718,7 @@ static bool CheckError(OSStatus error, NSString* function) {
     //switch to MultiRoute category when an external display is connected
     //handleRouteChangeEvent: (AVAudioSessionRouteChangeNotification handler) will test if attached screen is HDMI
     dispatch_async(_safetyQueue, ^{
-        NSError * err;
+        __block NSError * err = nil;
         [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryMultiRoute
             withOptions: AVAudioSessionCategoryOptionAllowBluetooth |
                 AVAudioSessionCategoryOptionMixWithOthers |
@@ -775,7 +775,7 @@ static bool CheckError(OSStatus error, NSString* function) {
 
     //switch back to PlayAndRecord category when external display is disconnected
     dispatch_async(_safetyQueue, ^{
-        NSError * err;
+        __block NSError * err = nil;
         [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryPlayAndRecord
             withOptions: AVAudioSessionCategoryOptionAllowBluetooth |
                 AVAudioSessionCategoryOptionMixWithOthers |

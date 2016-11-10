@@ -643,6 +643,7 @@ static bool CheckError(OSStatus error, NSString* function) {
 //            if ([[session category] isEqualToString: AVAudioSessionCategoryMultiRoute] && [[[session currentRoute] outputs] indexOfObjectPassingTest: isHDMIOutput] == NSNotFound) {
 //                [session setCategory: AVAudioSessionCategoryPlayAndRecord withOptions: audioOptions error: nil];
 //            }
+            break;
     }
 
     // We've made it here, there's been a legit route change.

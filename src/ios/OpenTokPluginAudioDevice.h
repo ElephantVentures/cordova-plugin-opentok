@@ -70,5 +70,6 @@
 - (void)onRouteChange:(NSDictionary*)eventData;
 - (void)onScreenDidConnect:(NSDictionary*)eventData;
 - (void)onScreenDidDisconnect:(NSDictionary*)eventData;
+- (void)onCategoryChange:(NSDictionary*)eventData;
 
 @end

@@ -642,6 +642,16 @@ static bool CheckError(OSStatus error, NSString* function) {
             //switch to PlayAndRecord category if HDMI is not detected (some other external display is connected)
             if ([[session category] isEqualToString: AVAudioSessionCategoryMultiRoute] && [[[session currentRoute] outputs] indexOfObjectPassingTest: isHDMIOutput] == NSNotFound) {
                 [session setCategory: AVAudioSessionCategoryPlayAndRecord withOptions: audioOptions error: nil];
+
+                if (_delegate) {
+                    NSDictionary * message = @ {
+                        @"category": [session category],
+                        @"sourceEvent": @"routeChange"
+                    };
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [self.delegate onCategoryChange: message];
+                    });
+                }
             }
     }
 
@@ -725,6 +735,16 @@ static bool CheckError(OSStatus error, NSString* function) {
             error: nil
         ];
 
+        if (self.delegate) {
+            NSDictionary * message = @ {
+                @"category": [[AVAudioSession sharedInstance] category],
+                @"sourceEvent": @"screenDidConnect"
+            };
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self.delegate onCategoryChange: message];
+            });
+        }
+
         [self resetAudio];
     });
 }
@@ -757,6 +777,16 @@ static bool CheckError(OSStatus error, NSString* function) {
                 AVAudioSessionCategoryOptionDefaultToSpeaker
             error: nil
         ];
+
+        if (self.delegate) {
+            NSDictionary * message = @ {
+                @"category": [[AVAudioSession sharedInstance] category],
+                @"sourceEvent": @"screenDidDisconnect"
+            };
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self.delegate onCategoryChange: message];
+            });
+        }
 
         [self resetAudio];
     });

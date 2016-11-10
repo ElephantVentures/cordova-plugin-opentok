@@ -573,6 +573,30 @@ static bool CheckError(OSStatus error, NSString* function) {
     });
 }
 
+- (void) onMediaServicesResetEvent:(NSNotification *) notification
+{
+    if (_delegate) {
+        NSDictionary * message = @ {
+            @"currentCategory": [[AVAudioSession sharedInstance] category]
+        };
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.delegate onMediaServicesReset: message];
+        });
+    }
+}
+
+- (void) onMediaServicesLostEvent:(NSNotification *) notification
+{
+    if (_delegate) {
+        NSDictionary * message = @ {
+            @"currentCategory": [[AVAudioSession sharedInstance] category]
+        };
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.delegate onMediaServicesLost: message];
+        });
+    }
+}
+
 - (void) resetAudio
 {
     _isResetting = YES;
@@ -697,6 +721,16 @@ static bool CheckError(OSStatus error, NSString* function) {
         [center addObserver:self
                    selector:@selector(appDidBecomeActive:)
                        name:UIApplicationDidBecomeActiveNotification
+                     object:nil];
+
+        [center addObserver:self
+                   selector:@selector(onMediaServicesResetEvent:)
+                       name:AVAudioSessionMediaServicesWereResetNotification
+                     object:nil];
+
+        [center addObserver:self
+                   selector:@selector(onMediaServicesLostEvent:)
+                       name:AVAudioSessionMediaServicesWereLostNotification
                      object:nil];
 
         areListenerBlocksSetup = YES;

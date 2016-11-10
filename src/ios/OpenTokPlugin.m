@@ -62,6 +62,18 @@
     }
 }
 
+- (void)onMediaServicesReset:(NSDictionary*)eventData {
+    if (_session) {
+        [_session signalWithType: @"onMediaServicesReset" string: [eventData description] connection: nil retryAfterReconnect: YES error: nil];
+    }
+}
+
+- (void)onMediaServicesLost:(NSDictionary*)eventData {
+    if (_session) {
+        [_session signalWithType: @"onMediaServicesLost" string: [eventData description] connection: nil retryAfterReconnect: YES error: nil];
+    }
+}
+
 #pragma mark -
 #pragma mark Cordova JS - iOS bindings
 #pragma mark TB Methods

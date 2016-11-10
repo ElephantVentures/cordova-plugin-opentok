@@ -71,5 +71,7 @@
 - (void)onScreenDidConnect:(NSDictionary*)eventData;
 - (void)onScreenDidDisconnect:(NSDictionary*)eventData;
 - (void)onCategoryChange:(NSDictionary*)eventData;
+- (void)onMediaServicesReset:(NSDictionary*)eventData;
+- (void)onMediaServicesLost:(NSDictionary*)eventData;
 
 @end

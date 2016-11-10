@@ -640,9 +640,9 @@ static bool CheckError(OSStatus error, NSString* function) {
         case AVAudioSessionRouteChangeReasonOldDeviceUnavailable:
             //check if HDMI is plugged in during MultiRoute category
             //switch to PlayAndRecord category if HDMI is not detected (some other external display is connected)
-            if ([[session category] isEqualToString: AVAudioSessionCategoryMultiRoute] && [[[session currentRoute] outputs] indexOfObjectPassingTest: isHDMIOutput] == NSNotFound) {
-                [session setCategory: AVAudioSessionCategoryPlayAndRecord withOptions: audioOptions error: nil];
-            }
+//            if ([[session category] isEqualToString: AVAudioSessionCategoryMultiRoute] && [[[session currentRoute] outputs] indexOfObjectPassingTest: isHDMIOutput] == NSNotFound) {
+//                [session setCategory: AVAudioSessionCategoryPlayAndRecord withOptions: audioOptions error: nil];
+//            }
     }
 
     // We've made it here, there's been a legit route change.
@@ -718,12 +718,12 @@ static bool CheckError(OSStatus error, NSString* function) {
     //switch to MultiRoute category when an external display is connected
     //handleRouteChangeEvent: (AVAudioSessionRouteChangeNotification handler) will test if attached screen is HDMI
     dispatch_async(_safetyQueue, ^{
-        [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryMultiRoute
-            withOptions: AVAudioSessionCategoryOptionAllowBluetooth |
-                AVAudioSessionCategoryOptionMixWithOthers |
-                AVAudioSessionCategoryOptionDefaultToSpeaker
-            error: nil
-        ];
+//        [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryMultiRoute
+//            withOptions: AVAudioSessionCategoryOptionAllowBluetooth |
+//                AVAudioSessionCategoryOptionMixWithOthers |
+//                AVAudioSessionCategoryOptionDefaultToSpeaker
+//            error: nil
+//        ];
 
         [self resetAudio];
     });
@@ -751,12 +751,12 @@ static bool CheckError(OSStatus error, NSString* function) {
 
     //switch back to PlayAndRecord category when external display is disconnected
     dispatch_async(_safetyQueue, ^{
-        [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryPlayAndRecord
-            withOptions: AVAudioSessionCategoryOptionAllowBluetooth |
-                AVAudioSessionCategoryOptionMixWithOthers |
-                AVAudioSessionCategoryOptionDefaultToSpeaker
-            error: nil
-        ];
+//        [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryPlayAndRecord
+//            withOptions: AVAudioSessionCategoryOptionAllowBluetooth |
+//                AVAudioSessionCategoryOptionMixWithOthers |
+//                AVAudioSessionCategoryOptionDefaultToSpeaker
+//            error: nil
+//        ];
 
         [self resetAudio];
     });

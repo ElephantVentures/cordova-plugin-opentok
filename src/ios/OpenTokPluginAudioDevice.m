@@ -445,7 +445,7 @@ static bool CheckError(OSStatus error, NSString* function) {
     audioOptions |= AVAudioSessionCategoryOptionAllowBluetooth ;
     audioOptions |= AVAudioSessionCategoryOptionDefaultToSpeaker;
     // Start out with MultiRoute category in case HDMI is already plugged in
-    [mySession setCategory:AVAudioSessionCategoryMultiRoute
+    [mySession setCategory:AVAudioSessionCategoryPlayAndRecord
                withOptions:audioOptions
                      error:nil];
 #else
@@ -761,7 +761,7 @@ static bool CheckError(OSStatus error, NSString* function) {
 
     //switch to MultiRoute category when an external display is connected
     //handleRouteChangeEvent: (AVAudioSessionRouteChangeNotification handler) will test if attached screen is HDMI
-//    dispatch_async(_safetyQueue, ^{
+    dispatch_async(_safetyQueue, ^{
 //        [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryMultiRoute
 //            withOptions: AVAudioSessionCategoryOptionAllowBluetooth |
 //                AVAudioSessionCategoryOptionMixWithOthers |
@@ -778,9 +778,9 @@ static bool CheckError(OSStatus error, NSString* function) {
 //                [self.delegate onCategoryChange: message];
 //            });
 //        }
-//
-//        [self resetAudio];
-//    });
+
+        [self resetAudio];
+    });
 }
 
 - (void)handleScreenDidDisconnectNotification:(NSNotification*)aNotification
@@ -804,7 +804,7 @@ static bool CheckError(OSStatus error, NSString* function) {
     // Debugging code end
 
     //switch back to PlayAndRecord category when external display is disconnected
-//    dispatch_async(_safetyQueue, ^{
+    dispatch_async(_safetyQueue, ^{
 //        [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryPlayAndRecord
 //            withOptions: AVAudioSessionCategoryOptionAllowBluetooth |
 //                AVAudioSessionCategoryOptionMixWithOthers |
@@ -821,9 +821,9 @@ static bool CheckError(OSStatus error, NSString* function) {
 //                [self.delegate onCategoryChange: message];
 //            });
 //        }
-//
-//        [self resetAudio];
-//    });
+
+        [self resetAudio];
+    });
 }
 
 - (void) removeObservers

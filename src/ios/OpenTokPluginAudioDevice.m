@@ -577,14 +577,6 @@ static bool CheckError(OSStatus error, NSString* function) {
 
 - (void) onMediaServicesResetEvent:(NSNotification *) notification
 {
-    if (_delegate) {
-        NSDictionary * message = @ {
-            @"currentCategory": [[AVAudioSession sharedInstance] category]
-        };
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [self.delegate onMediaServicesReset: message];
-        });
-    }
 
     dispatch_async(_safetyQueue, ^{
         [[AVAudioSession sharedInstance] setCategory: _avAudioSessionCategory
@@ -606,6 +598,15 @@ static bool CheckError(OSStatus error, NSString* function) {
 
         [self resetAudio];
     });
+
+    if (_delegate) {
+        NSDictionary * message = @ {
+            @"currentCategory": [[AVAudioSession sharedInstance] category]
+        };
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.delegate onMediaServicesReset: message];
+        });
+    }
 
 }
 

@@ -598,7 +598,7 @@ static bool CheckError(OSStatus error, NSString* function) {
 
         [self resetAudio];
 
-        if (_delegate) {
+        if (self.delegate) {
             NSDictionary * message = @ {
                 @"currentCategory": [[AVAudioSession sharedInstance] category]
             };

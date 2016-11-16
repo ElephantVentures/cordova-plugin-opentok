@@ -82,6 +82,7 @@ static OSStatus playout_cb(void *ref_con,
     BOOL recording_initialized;
     BOOL interrupted_playback;
     NSString* _previousAVAudioSessionCategory;
+    NSString* _avAudioSessionCategory;
     NSString* avAudioSessionMode;
     double avAudioSessionPreffSampleRate;
     NSInteger avAudioSessionChannels;
@@ -445,7 +446,8 @@ static bool CheckError(OSStatus error, NSString* function) {
     audioOptions |= AVAudioSessionCategoryOptionAllowBluetooth ;
     audioOptions |= AVAudioSessionCategoryOptionDefaultToSpeaker;
     // Start out with MultiRoute category in case HDMI is already plugged in
-    [mySession setCategory:AVAudioSessionCategoryMultiRoute
+    _avAudioSessionCategory = AVAudioSessionCategoryMultiRoute;
+    [mySession setCategory:_avAudioSessionCategory
                withOptions:audioOptions
                      error:nil];
 #else
@@ -583,6 +585,28 @@ static bool CheckError(OSStatus error, NSString* function) {
             [self.delegate onMediaServicesReset: message];
         });
     }
+
+    dispatch_async(_safetyQueue, ^{
+        [[AVAudioSession sharedInstance] setCategory: _avAudioSessionCategory
+            withOptions: AVAudioSessionCategoryOptionAllowBluetooth |
+                AVAudioSessionCategoryOptionMixWithOthers |
+                AVAudioSessionCategoryOptionDefaultToSpeaker
+            error: nil
+        ];
+
+        if (self.delegate) {
+            NSDictionary * message = @ {
+                @"category": [[AVAudioSession sharedInstance] category],
+                @"sourceEvent": @"onMediaServicesResetEvent"
+            };
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self.delegate onCategoryChange: message];
+            });
+        }
+
+        [self resetAudio];
+    });
+
 }
 
 - (void) onMediaServicesLostEvent:(NSNotification *) notification
@@ -665,7 +689,8 @@ static bool CheckError(OSStatus error, NSString* function) {
             //check if HDMI is plugged in during MultiRoute category
             //switch to PlayAndRecord category if HDMI is not detected (some other external display is connected)
             if ([[session category] isEqualToString: AVAudioSessionCategoryMultiRoute] && [[[session currentRoute] outputs] indexOfObjectPassingTest: isHDMIOutput] == NSNotFound) {
-                [session setCategory: AVAudioSessionCategoryPlayAndRecord withOptions: audioOptions error: nil];
+                _avAudioSessionCategory = AVAudioSessionCategoryPlayAndRecord;
+                [session setCategory: _avAudioSessionCategory withOptions: audioOptions error: nil];
 
                 if (_delegate) {
                     NSDictionary * message = @ {
@@ -761,8 +786,9 @@ static bool CheckError(OSStatus error, NSString* function) {
 
     //switch to MultiRoute category when an external display is connected
     //handleRouteChangeEvent: (AVAudioSessionRouteChangeNotification handler) will test if attached screen is HDMI
+    _avAudioSessionCategory = AVAudioSessionCategoryMultiRoute;
     dispatch_async(_safetyQueue, ^{
-        [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryMultiRoute
+        [[AVAudioSession sharedInstance] setCategory: _avAudioSessionCategory
             withOptions: AVAudioSessionCategoryOptionAllowBluetooth |
                 AVAudioSessionCategoryOptionMixWithOthers |
                 AVAudioSessionCategoryOptionDefaultToSpeaker
@@ -804,8 +830,9 @@ static bool CheckError(OSStatus error, NSString* function) {
     // Debugging code end
 
     //switch back to PlayAndRecord category when external display is disconnected
+    _avAudioSessionCategory = AVAudioSessionCategoryPlayAndRecord;
     dispatch_async(_safetyQueue, ^{
-        [[AVAudioSession sharedInstance] setCategory: AVAudioSessionCategoryPlayAndRecord
+        [[AVAudioSession sharedInstance] setCategory: _avAudioSessionCategory
             withOptions: AVAudioSessionCategoryOptionAllowBluetooth |
                 AVAudioSessionCategoryOptionMixWithOthers |
                 AVAudioSessionCategoryOptionDefaultToSpeaker

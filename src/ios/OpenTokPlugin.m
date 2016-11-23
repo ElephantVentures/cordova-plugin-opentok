@@ -24,11 +24,11 @@
 #pragma mark Cordova Methods
 - (void) pluginInitialize{
     callbackList = [[NSMutableDictionary alloc] init];
-    _audioDevice = [[OpenTokPluginAudioDevice alloc] init];
+//    _audioDevice = [[OpenTokPluginAudioDevice alloc] init];
     // Uncomment code below to enable logging for
     // AVAudioSession via Opentok signaling
 //    [_audioDevice setDelegate: self];
-    [OTAudioDeviceManager setAudioDevice: _audioDevice];
+//    [OTAudioDeviceManager setAudioDevice: _audioDevice];
 }
 - (void)addEvent:(CDVInvokedUrlCommand*)command{
     NSString* event = [command.arguments objectAtIndex:0];

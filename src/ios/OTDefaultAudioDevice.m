@@ -673,7 +673,7 @@ static bool CheckError(OSStatus error, NSString* function) {
 
         AVAudioSessionRouteDescription* oldRouteDesc =
         [interruptionDict valueForKey:AVAudioSessionRouteChangePreviousRouteKey];
-        NSArray<AVAudioSessionPortDescription*>* outputs =
+        NSArray * outputs =
         [oldRouteDesc outputs];
 
         if(outputs.count > 0)

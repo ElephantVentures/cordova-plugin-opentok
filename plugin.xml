@@ -35,7 +35,7 @@
           <param name="android-package" value="com.tokbox.cordova.OpenTokAndroidPlugin"/>
         </feature>
       </config-file>
-      
+
     </platform>
 
     <!-- ios -->
@@ -43,6 +43,8 @@
       <hook type="before_plugin_install" src="scripts/downloadiOSSDK.js" />
       <asset src="www/opentok.js" target="opentok.js" />
 
+      <header-file src="src/ios/OTDefaultAudioDevice.h" />
+      <source-file src="src/ios/OTDefaultAudioDevice.m" />
       <header-file src="src/ios/OpenTokPluginAudioDevice.h" />
       <source-file src="src/ios/OpenTokPluginAudioDevice.m" />
       <header-file src="src/ios/OpenTokPlugin.h" />

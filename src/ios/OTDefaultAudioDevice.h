@@ -15,6 +15,8 @@
 #define AUDIO_DEVICE_BLUETOOTH   @"AudioSessionManagerDevice_Bluetooth"
 #define AUDIO_DEVICE_SPEAKER     @"AudioSessionManagerDevice_Speaker"
 
+@protocol OTDefaultAudioDeviceDelegate;
+
 @interface OTDefaultAudioDevice : NSObject <OTAudioDevice>
 {
     AudioStreamBasicDescription stream_format;
@@ -35,5 +37,15 @@
  * not take effect until after the next audio unit setup call.
  */
 @property (nonatomic) uint32_t preferredAudioComponentSubtype;
+
+@property (nonatomic) id<OTDefaultAudioDeviceDelegate> delegate;
+
+@end
+
+
+@protocol OTDefaultAudioDeviceDelegate <NSObject>
+
+- (void)onRouteChange:(NSDictionary*)eventData;
+- (void)onInterruptionEvent:(NSDictionary*)eventData;
 
 @end

@@ -11,7 +11,7 @@
     OTSession* _session;
     OTPublisher* _publisher;
     OTSubscriber* _subscriber;
-    OpenTokPluginAudioDevice* _audioDevice;
+    OTDefaultAudioDevice* _audioDevice;
     NSMutableDictionary *subscriberDictionary;
     NSMutableDictionary *connectionDictionary;
     NSMutableDictionary *streamDictionary;
@@ -24,11 +24,11 @@
 #pragma mark Cordova Methods
 - (void) pluginInitialize{
     callbackList = [[NSMutableDictionary alloc] init];
-//    _audioDevice = [[OpenTokPluginAudioDevice alloc] init];
+    _audioDevice = [[OTDefaultAudioDevice alloc] init];
     // Uncomment code below to enable logging for
     // AVAudioSession via Opentok signaling
-//    [_audioDevice setDelegate: self];
-//    [OTAudioDeviceManager setAudioDevice: _audioDevice];
+    [_audioDevice setDelegate: self];
+    [OTAudioDeviceManager setAudioDevice: _audioDevice];
 }
 - (void)addEvent:(CDVInvokedUrlCommand*)command{
     NSString* event = [command.arguments objectAtIndex:0];
@@ -36,7 +36,7 @@
 }
 
 
-#pragma mark - OpenTokPluginAudioDeviceDelegate
+#pragma mark - OTDefaultAudioDeviceDelegate
 
 - (void)onRouteChange:(NSDictionary*)eventData {
     if (_session) {
@@ -44,15 +44,9 @@
     }
 }
 
-- (void)onScreenDidConnect:(NSDictionary*)eventData {
+- (void)onInterruptionEvent:(NSDictionary*)eventData {
     if (_session) {
-        [_session signalWithType: @"onScreenDidConnect" string: [eventData description] connection: nil retryAfterReconnect: YES error: nil];
-    }
-}
-
-- (void)onScreenDidDisconnect:(NSDictionary*)eventData {
-    if (_session) {
-        [_session signalWithType: @"onScreenDidDisconnect" string: [eventData description] connection: nil retryAfterReconnect: YES error: nil];
+        [_session signalWithType: @"onInterruption" string: [eventData description] connection: nil retryAfterReconnect: YES error: nil];
     }
 }
 

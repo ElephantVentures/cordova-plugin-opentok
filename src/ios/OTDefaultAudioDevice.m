@@ -560,6 +560,25 @@ static bool CheckError(OSStatus error, NSString* function) {
     [[interruptionDict valueForKey:AVAudioSessionInterruptionTypeKey]
      integerValue];
 
+    // Debugging code start
+    if (_delegate) {
+        AVAudioSession* session = [AVAudioSession sharedInstance];
+        NSArray * outputs = [[session currentRoute] outputs];
+        NSMutableArray * outputNames = [NSMutableArray arrayWithCapacity: [outputs count]];
+        [outputs enumerateObjectsUsingBlock:^(id output, NSUInteger idx, BOOL *stop) {
+            [outputNames addObject: [output portName]];
+        }];
+        NSDictionary * message = @ {
+            @"interruptionReason": [interruptionDict valueForKey: AVAudioSessionInterruptionTypeKey],
+            @"currentCategory": [session category],
+            @"outputs": outputNames
+        };
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.delegate onInterruptionEvent: message];
+        });
+    }
+    // Debugging code end
+
     dispatch_async(_safetyQueue, ^() {
         [self handleInterruptionEvent:interruptionType];
     });
@@ -618,6 +637,25 @@ static bool CheckError(OSStatus error, NSString* function) {
     NSInteger routeChangeReason =
     [[interruptionDict valueForKey:AVAudioSessionRouteChangeReasonKey]
      integerValue];
+
+    // Debugging code start
+    if (_delegate) {
+        AVAudioSession* session = [AVAudioSession sharedInstance];
+        NSArray * outputs = [[session currentRoute] outputs];
+        NSMutableArray * outputNames = [NSMutableArray arrayWithCapacity: [outputs count]];
+        [outputs enumerateObjectsUsingBlock:^(id output, NSUInteger idx, BOOL *stop) {
+            [outputNames addObject: [output portName]];
+        }];
+        NSDictionary * message = @ {
+            @"routeChangeReason": [interruptionDict valueForKey: AVAudioSessionRouteChangeReasonKey],
+            @"currentCategory": [session category],
+            @"outputs": outputNames
+        };
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self.delegate onRouteChange: message];
+        });
+    }
+    // Debugging code end
 
     // We'll receive a routeChangedEvent when the audio unit starts; don't
     // process events we caused internally.
